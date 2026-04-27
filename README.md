@@ -1,115 +1,116 @@
-# Ensembles-de-donn-es-personnels-sur-le-co-t-m-dical
-Prévision de l’assurance en utilisant la régression linéaire
-Prédiction des coûts d’assurance médicale par régression linéaire
+🧾 README — Auto Insurance Claims Data
+Prédiction du montant des sinistres automobiles
 🎯 Objectif du projet
-Construire un modèle de régression linéaire capable de prédire le coût d’assurance médicale (charges) à partir de caractéristiques individuelles (âge, BMI, tabagisme, etc.).
+Développer un modèle de régression (linéaire ou régularisée) pour prédire le montant des sinistres (ClaimAmount) à partir de caractéristiques liées au conducteur, au véhicule et à l’historique de sinistres.
+
 Ce projet illustre une démarche complète : EDA, préparation des données, modélisation, évaluation et interprétation.
 
 📂 Dataset
-Le projet utilise le Medical Cost Personal Dataset (1 338 individus, 7 variables).
-Variables disponibles :
+Le dataset contient des informations sur les assurés, leur véhicule et leurs sinistres.
+Les colonnes visibles dans la source incluent notamment :
 
-age — âge de l’assuré
+ClaimAmount — montant du sinistre
 
-sex — homme/femme
+Age — âge du conducteur
 
-bmi — indice de masse corporelle
+VehicleAge — âge du véhicule
 
-children — nombre d’enfants à charge
+PreviousClaims — nombre de sinistres antérieurs
 
-smoker — fumeur ou non
+Gender_Male — indicateur homme
 
-region — région de résidence
+Location_Suburban / Urban — type de zone
 
-charges — coût médical facturé (variable cible)
+VehicleType_SUV / Sedan / Truck — type de véhicule
+
+Ces variables sont confirmées dans la fiche Kaggle .
 
 🧪 Méthodologie
 1. Exploration des données (EDA)
-Analyse de la distribution des variables
+Analyse des distributions (ClaimAmount, Age, VehicleAge…)
 
-Détection des outliers (notamment chez les fumeurs)
+Détection d’outliers (montants extrêmes)
 
-Corrélations : âge, BMI et tabagisme fortement liés aux charges
+Analyse des corrélations :
+
+ClaimAmount ↗ avec PreviousClaims
+
+ClaimAmount ↗ avec VehicleAge (tendance observée dans les exemples Kaggle)
+
+Effets possibles du type de véhicule
 
 2. Préparation des données
-Encodage des variables catégorielles (One‑Hot Encoding)
+Encodage des variables catégorielles (déjà one‑hot dans le dataset)
 
-Normalisation non nécessaire pour la régression linéaire simple
+Vérification des doublons
 
 Split train/test (80/20)
 
+Optionnel : transformation log du ClaimAmount si distribution très asymétrique
+
 3. Modélisation
-Modèles testés :
+Modèles recommandés :
 
 Régression linéaire multiple
 
-Modèles régularisés (Ridge, Lasso)
+Ridge / Lasso (souvent utiles si multicolinéarité entre types de véhicules)
 
-Ajout de features d’interaction (ex : smoker * bmi)
+Random Forest Regressor pour comparaison
 
 4. Évaluation
 Métriques utilisées :
 
 MAE
 
-MSE
+RMSE
 
 R²
 
-Résultats typiques :
+🧠 Insights attendus
+Les conducteurs ayant plus de sinistres antérieurs ont des montants plus élevés.
 
-R² autour de 0.75–0.80
+Les véhicules plus anciens peuvent générer des coûts plus importants (corrélation observée dans les données Kaggle).
 
-MAE autour de 2100–2300
+Le type de véhicule (SUV, Sedan, Truck) influence le montant du sinistre.
 
-Forte amélioration avec les interactions liées au tabagisme
-
-🧠 Insights clés
-Le tabagisme est le facteur le plus déterminant dans l’augmentation des coûts.
-
-Le BMI influence fortement les charges, surtout chez les fumeurs.
-
-L’âge a un effet linéaire clair.
-
-Les modèles régularisés n’apportent que peu d’amélioration.
+L’âge du conducteur peut jouer un rôle non linéaire (jeunes conducteurs = risque plus élevé).
 
 🧩 Exemple de code (extrait)
 python
+import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-import pandas as pd
+from sklearn.metrics import mean_absolute_error, r2_score
 
-df = pd.read_csv("insurance.csv")
+df = pd.read_csv("cleaned_insurance_claims.csv")
 
-X = df.drop("charges", axis=1)
-y = df["charges"]
-
-categorical = ["sex", "smoker", "region"]
-numeric = ["age", "bmi", "children"]
-
-preprocess = ColumnTransformer([
-    ("cat", OneHotEncoder(drop="first"), categorical),
-    ("num", "passthrough", numeric)
-])
-
-model = Pipeline([
-    ("prep", preprocess),
-    ("lr", LinearRegression())
-])
+X = df.drop("ClaimAmount", axis=1)
+y = df["ClaimAmount"]
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = LinearRegression()
 model.fit(X_train, y_train)
 
-print("R² :", model.score(X_test, y_test))
+pred = model.predict(X_test)
+
+print("MAE :", mean_absolute_error(y_test, pred))
+print("R² :", r2_score(y_test, pred))
 📌 Conclusion
-Ce projet montre comment un modèle simple, bien préparé et bien interprété peut fournir des prédictions fiables sur un sujet réel : les coûts d’assurance médicale.
-Il constitue une base solide pour :
+Ce projet permet de :
 
-tester d’autres modèles (Random Forest, XGBoost)
+comprendre les facteurs influençant les montants de sinistres
 
-ajouter des features non linéaires
+tester plusieurs modèles de régression
 
-construire un projet portfolio clair et professionnel
+produire un projet portfolio clair et professionnel
+
+🔧 Étapes suivantes possibles
+Ajouter des interactions (ex : VehicleAge × VehicleType)
+
+Tester des modèles non linéaires
+
+Construire une API de prédiction
+
+Ajouter des visualisations (heatmap, boxplots, partial dependence)
+
